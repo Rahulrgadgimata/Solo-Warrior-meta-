@@ -1,3 +1,20 @@
+---
+title: Medical Triage OpenEnv
+emoji: 🏥
+colorFrom: red
+colorTo: blue
+sdk: docker
+pinned: false
+tags:
+  - openenv
+  - reinforcement-learning
+  - healthcare
+  - triage
+  - medical
+  - agent
+license: mit
+---
+
 # 🏥 Medical Triage OpenEnv
 
 [![OpenEnv Spec](https://img.shields.io/badge/OpenEnv-v1.0.0-blue.svg)](https://github.com/raun/openenv-course)
