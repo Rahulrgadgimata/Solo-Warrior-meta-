@@ -4,19 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Triage AI — OpenEnv Environment</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #0ea5e9;
+            --primary-glow: rgba(14, 165, 233, 0.4);
             --secondary: #6366f1;
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --text: #f1f5f9;
+            --secondary-glow: rgba(99, 102, 241, 0.4);
+            --bg: #020617;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
             --text-dim: #94a3b8;
             --accent: #22d3ee;
             --danger: #ef4444;
             --success: #10b981;
             --warning: #f59e0b;
+            --glass: rgba(255, 255, 255, 0.03);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,295 +31,413 @@
             color: var(--text);
             line-height: 1.6;
             overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
         }
 
-        .gradient-bg {
+        /* Animated Mesh Background */
+        .mesh {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.05) 0%, transparent 50%),
-                        radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
             z-index: -1;
+            opacity: 0.5;
+            background-image: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="1" cy="1" r="0.5" fill="%23ffffff22" /></svg>');
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 4rem 2rem;
+            padding: 6rem 1.5rem;
         }
 
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 1.5rem 2rem;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+
+        /* Hero Section */
         header {
             text-align: center;
-            margin-bottom: 4rem;
-            animation: fadeInDown 0.8s ease-out;
+            margin-bottom: 6rem;
+            animation: fadeIn 1s ease-out;
         }
 
         .badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
             background: rgba(14, 165, 233, 0.1);
             border: 1px solid rgba(14, 165, 233, 0.2);
-            border-radius: 2rem;
+            border-radius: 999px;
             color: var(--accent);
-            font-size: 0.875rem;
-            font-weight: 600;
+            font-size: 0.8rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 1.5rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+        }
+
+        .badge-dot {
+            width: 8px; height: 8px; background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
         }
 
         h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            background: linear-gradient(to right, #fff, #94a3b8);
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to bottom right, #ffffff 30%, #475569);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .subtitle {
+        .hero-p {
             font-size: 1.25rem;
             color: var(--text-dim);
-            max-width: 700px;
-            margin: 0 auto;
+            max-width: 600px;
+            margin: 0 auto 3rem;
         }
 
-        .grid {
+        /* Cards Grid */
+        .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
             gap: 2rem;
-            margin-bottom: 4rem;
+            margin-bottom: 6rem;
         }
 
-        .card {
+        .feature-card {
             background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            transition: all 0.3s ease;
+            border: 1px solid var(--card-border);
+            border-radius: 2rem;
+            padding: 2.5rem;
             position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(14, 165, 233, 0.3);
-            box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
-        }
-
-        .card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            flex-direction: column;
+            gap: 1.5rem;
         }
 
-        .card p {
-            color: var(--text-dim);
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(14, 165, 233, 0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
         }
 
-        .icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(14, 165, 233, 0.1);
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(14, 165, 233, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(99, 102, 241, 0.2));
+            border-radius: 1.25rem;
+            display: flex; align-items: center; justify-content: center;
             color: var(--accent);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .esi-scale {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .esi-item {
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            text-align: center;
-            font-size: 0.75rem;
+        .feature-card h3 {
+            font-size: 1.5rem;
             font-weight: 700;
         }
 
-        .esi-1 { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
-        .esi-2 { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
-        .esi-3 { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
-        .esi-4 { background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid #0ea5e9; }
-        .esi-5 { background: rgba(148, 163, 184, 0.1); color: #94a3b8; border: 1px solid #64748b; }
+        .feature-card p {
+            color: var(--text-dim);
+            font-size: 1.05rem;
+        }
 
-        .terminal {
-            background: #020617;
-            border-radius: 1rem;
+        /* Live Tracker Visualization */
+        .live-panel {
+            background: #000;
+            border-radius: 1.5rem;
             padding: 1.5rem;
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            margin-top: auto;
+        }
+
+        .tracker-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.85rem;
+        }
+
+        .tracker-row:last-child { border: none; }
+        .label { color: var(--text-dim); }
+        .val { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+        /* Code Block */
+        .code-explorer {
+            background: #0b0f1a;
+            border: 1px solid var(--card-border);
+            border-radius: 1.5rem;
+            padding: 0;
+            overflow: hidden;
+            margin-bottom: 6rem;
+            box-shadow: 0 0 100px rgba(14, 165, 233, 0.1);
+        }
+
+        .code-header {
+            background: #141b2d;
+            padding: 1rem 1.5rem;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .code-tabs { display: flex; gap: 1rem; }
+        .tab { font-size: 0.8rem; font-weight: 600; color: var(--text-dim); cursor: pointer; }
+        .tab.active { color: var(--primary); }
+
+        .code-content {
+            padding: 2rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            color: #d1d5db;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 2rem;
-            position: relative;
+            font-size: 0.95rem;
+            overflow-x: auto;
         }
 
-        .terminal-header {
+        .k { color: #f472b6; } /* keyword */
+        .f { color: #38bdf8; } /* function */
+        .s { color: #34d399; } /* string */
+        .c { color: #64748b; } /* comment */
+
+        /* ESI Progress Bar */
+        .esi-viz {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 4px;
+            height: 8px;
+            margin-top: 1rem;
         }
 
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot-red { background: #ff5f56; }
-        .dot-yellow { background: #ffbd2e; }
-        .dot-green { background: #27c93f; }
+        .esi-bar { flex: 1; border-radius: 2px; }
+        .b1 { background: var(--danger); }
+        .b2 { background: var(--warning); opacity: 0.8; }
+        .b3 { background: var(--success); opacity: 0.6; }
+        .b4 { background: var(--primary); opacity: 0.4; }
+        .b5 { background: var(--text-dim); opacity: 0.2; }
 
-        .code-keyword { color: #f472b6; }
-        .code-string { color: #34d399; }
-        .code-comment { color: #64748b; }
-        .code-func { color: #38bdf8; }
+        /* Floating CTA */
+        .cta-button {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: #fff;
+            padding: 1.2rem 3rem;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 30px var(--primary-glow);
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 15px 40px var(--primary-glow);
+        }
 
         footer {
             text-align: center;
+            padding-bottom: 4rem;
             color: var(--text-dim);
-            font-size: 0.875rem;
-            margin-top: 4rem;
+            font-size: 0.9rem;
         }
 
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 3rem;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 2rem;
-            transition: transform 0.2s;
-        }
-
-        .cta:hover {
-            transform: scale(1.05);
-        }
-
-        #status-dashboard {
-            background: rgba(14, 165, 233, 0.05);
-            border: 1px dashed rgba(14, 165, 233, 0.3);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-top: 2rem;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-        }
-
-        .stat-label { color: var(--text-dim); }
-        .stat-value { font-weight: 600; color: #fff; }
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0% { opacity: 0.5; box-shadow: 0 0 0px var(--success); } 50% { opacity: 1; box-shadow: 0 0 15px var(--success); } 100% { opacity: 0.5; box-shadow: 0 0 0px var(--success); } }
 
         @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
-            .grid { grid-template-columns: 1fr; }
+            h1 { font-size: 3rem; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="gradient-bg"></div>
+    <div class="mesh"></div>
     
+    <nav>
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2a2 2 0 0 0-2 2v5H4a2 2 0 0 0-2 2v2c0 1.1.9 2 2 2h5v5c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2v-5h5a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-5V4a2 2 0 0 0-2-2h-2z"/></svg>
+            TriageOS:V3
+        </div>
+        <ul class="nav-links">
+            <li><a href="/tasks">Tasks</a></li>
+            <li><a href="/docs">API Docs</a></li>
+            <li><a href="/state">System State</a></li>
+            <li><a href="/baseline">Baseline</a></li>
+        </ul>
+        <a href="https://github.com/Rahulrgadgimata/Solo-Warrior-meta-" target="_blank" style="color:white">GitHub</a>
+    </nav>
+
     <div class="container">
         <header>
-            <div class="badge">OpenEnv Hackathon 2026</div>
-            <h1>Medical Triage AI</h1>
-            <p class="subtitle">A high-fidelity RL environment for clinical emergency assessment based on the Emergency Severity Index (ESI).</p>
-            <a href="/docs" class="cta">
-                View API Documentation
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            <div class="badge">
+                <div class="badge-dot"></div>
+                Environment Online & Ready
+            </div>
+            <h1>
+                <span class="gradient-text">Mastering Medical</span><br>
+                Emergency Triage
+            </h1>
+            <p class="hero-p">
+                Experience the next generation of Reinforcement Learning for healthcare. 
+                A high-fidelity simulation of the Emergency Severity Index (ESI) protocol.
+            </p>
+            <a href="/docs" class="cta-button">
+                Start Exploring API
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
             </a>
         </header>
 
-        <div class="grid">
-            <div class="card">
-                <div class="icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+        <div class="features">
+            <!-- Fidelity Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                 </div>
-                <h3>Clinical Fidelity</h3>
-                <p>Simulates real-world patient deteriorations using a custom vital decay engine. Agents must act fast to prevent mortality penalties.</p>
-                <div class="esi-scale">
-                    <div class="esi-item esi-1">1</div>
-                    <div class="esi-item esi-2">2</div>
-                    <div class="esi-item esi-3">3</div>
-                    <div class="esi-item esi-4">4</div>
-                    <div class="esi-item esi-5">5</div>
+                <div>
+                    <h3>Clinical Progression</h3>
+                    <p>Real-time vital deterioration engine. Patients respond to delays with dynamic decay in SpO₂, HR, and consciousness.</p>
                 </div>
-            </div>
-
-            <div class="card">
-                <div class="icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21 2-2 2"></path><circle cx="12" cy="13" r="1"></circle><path d="M18 10.1c.2.5.5.9.8 1.3"></path><path d="M3 3 2 2"></path><path d="m3 21 2-2"></path><path d="m21 21-2-2"></path><path d="M4.3 4.3c1.5-1.5 3.6-2.3 5.7-2.3s4.2.8 5.7 2.3"></path><path d="M21 12c0 2.1-.8 4.2-2.3 5.7L12 11.4 5.3 17.7c-1.5-1.5-2.3-3.6-2.3-5.7s.8-4.2 2.3-5.7"></path><path d="M12 22s-1.5-4-1.5-6h3c0 2-1.5 6-1.5 6Z"></path></svg>
-                </div>
-                <h3>Resource Aware</h3>
-                <p>Tracks hospital capacity: ICU beds, MRI scanners, and staff ratios. Agents are graded on efficient resource utilization.</p>
-                <div id="status-dashboard">
-                    <div class="stat-row"><span class="stat-label">ICU Capacity:</span> <span class="stat-value">Available (4/4)</span></div>
-                    <div class="stat-row"><span class="stat-label">ER Status:</span> <span class="stat-value" style="color: var(--success)">Normal</span></div>
-                    <div class="stat-row"><span class="stat-label">Wait Time:</span> <span class="stat-value" style="color: var(--accent)">0.0s</span></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M12 8v8"></path><path d="M8 12h8"></path></svg>
-                </div>
-                <h3>Explainable AI</h3>
-                <p>Includes a built-in XAI engine that provides clinical reasoning, symptom weights, and differential diagnoses to aid agent learning.</p>
-                <div class="terminal">
-                    <div class="terminal-header">
-                        <div class="dot dot-red"></div>
-                        <div class="dot dot-yellow"></div>
-                        <div class="dot dot-green"></div>
+                <div class="live-panel">
+                    <div class="tracker-row"><span class="label">Patient deterioration</span> <span class="val" style="color:var(--danger)">Active</span></div>
+                    <div class="tracker-row"><span class="label">Vitals sampling</span> <span class="val">100Hz</span></div>
+                    <div class="esi-viz">
+                        <div class="esi-bar b1"></div><div class="esi-bar b2"></div><div class="esi-bar b3"></div><div class="esi-bar b4"></div><div class="esi-bar b5"></div>
                     </div>
-                    <span class="code-comment"># Initializing XAI Engine...</span><br>
-                    <span class="code-keyword">POST</span> /step <br>
-                    {<br>
-                    &nbsp;&nbsp;<span class="code-string">"reward"</span>: 0.985,<br>
-                    &nbsp;&nbsp;<span class="code-string">"feedback"</span>: [<span class="code-string">"Correct ESI-2"</span>]<br>
-                    }
+                </div>
+            </div>
+
+            <!-- AI Engine Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.1 12.1"/><path d="M12 12l9.9-0.1"/><path d="M12 2v10l7.1 7.1"/></svg>
+                </div>
+                <div>
+                    <h3>Resource Mapping</h3>
+                    <p>Manage 12+ hospital facilities including ICU beds, Resus bays, Cath Labs, and diagnostic scanners.</p>
+                </div>
+                <div class="live-panel">
+                    <div class="tracker-row"><span class="label">ICU Capacity</span> <span class="val">4/4 Free</span></div>
+                    <div class="tracker-row"><span class="label">Cath Lab</span> <span class="val" style="color:var(--success)">Ready</span></div>
+                    <div class="tracker-row"><span class="label">OR Status</span> <span class="val">Standby</span></div>
+                </div>
+            </div>
+
+            <!-- XAI Card -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                </div>
+                <div>
+                    <h3>Clinical XAI</h3>
+                    <p>Built-in reasoning engine provides deep-learning agents with clinical hints and differential diagnosis probabilities.</p>
+                </div>
+                <div class="live-panel" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">
+                    <span style="color:var(--primary)">PRIMARY:</span> STEMI Suspected<br>
+                    <span style="color:var(--text-dim)">CONFIDENCE:</span> 94.2%<br>
+                    <span style="color:var(--warning)">RISK:</span> High Det.
                 </div>
             </div>
         </div>
 
-        <section>
-            <h2 style="margin-bottom: 2rem; font-size: 2rem;">Environment Integration</h2>
-            <div class="terminal">
-                <div class="terminal-header">
-                    <div class="dot dot-red"></div>
-                    <div class="dot dot-yellow"></div>
-                    <div class="dot dot-green"></div>
+        <section class="code-explorer">
+            <div class="code-header">
+                <div class="code-tabs">
+                    <div class="tab" style="display:flex; align-items:center; gap:0.5rem">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+                        integration_guide.py
+                    </div>
                 </div>
-                <span class="code-comment"># Install via OpenEnv Core</span><br>
-                pip install <span class="code-string">openenv-core</span><br><br>
-                <span class="code-keyword">import</span> <span class="code-func">asyncio</span><br>
-                <span class="code-keyword">from</span> <span class="code-func">client</span> <span class="code-keyword">import</span> <span class="code-func">MedicalTriageEnv</span><br><br>
-                <span class="code-func">env</span> = <span class="code-keyword">await</span> <span class="code-func">MedicalTriageEnv</span>.from_url(<span class="code-string">"https://current-space-url"</span>)<br>
-                <span class="code-func">obs</span> = <span class="code-keyword">await</span> <span class="code-func">env</span>.<span class="code-func">reset</span>(task_id=<span class="code-string">"hard"</span>)<br>
-                <span class="code-func">result</span> = <span class="code-keyword">await</span> <span class="code-func">env</span>.<span class="code-func">step</span>(esi_level=<span class="code-string">1</span>, department=<span class="code-string">"Resuscitation"</span>)
+                <div class="val" style="font-size: 0.7rem; color: var(--text-dim)">v3.5.0-STABLE</div>
+            </div>
+            <div class="code-content">
+                <span class="k">import</span> asyncio<br>
+                <span class="k">from</span> client <span class="k">import</span> <span class="f">MedicalTriageEnv</span><br><br>
+                <span class="c"># Connect to the world-class triage environment</span><br>
+                <span class="f">env</span> = <span class="k">await</span> <span class="f">MedicalTriageEnv</span>.<span class="f">from_url</span>(<span class="s">"https://current-space"</span>)<br><br>
+                <span class="c"># Assess one of 3 difficulty levels (easy, medium, hard)</span><br>
+                <span class="f">obs</span> = <span class="k">await</span> <span class="f">env</span>.<span class="f">reset</span>(task_id=<span class="s">"hard"</span>)<br>
+                <span class="f">print</span>(obs.presentation)<br><br>
+                <span class="c"># Execute triage action (ESI 1-5 + Department)</span><br>
+                <span class="f">res</span> = <span class="k">await</span> <span class="f">env</span>.<span class="f">step</span>(esi_level=<span class="s">2</span>, department=<span class="s">"Emergency"</span>)<br>
+                <span class="f">print</span>(<span class="s">f"Score: {res.reward.value}"</span>)
             </div>
         </section>
 
         <footer>
-            Built for OpenEnv 2026 Submission. Developed by Rahul R gadgimata.
+            Built for OpenEnv 2026 Submission by <strong>Rahul R gadgimata</strong>.<br>
+            A high-fidelity implementation of Clinical Emergency Protocols.
         </footer>
     </div>
+
+    <script>
+        // Smooth hover effect for cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
+            });
+        });
+    </script>
 </body>
 </html>
