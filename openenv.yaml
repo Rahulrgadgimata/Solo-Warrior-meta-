@@ -5,7 +5,7 @@ description: >
   Emergency Severity Index (ESI). Agents assess patient presentations, assign ESI
   levels (1–5), and recommend departments. Graders use clinical protocols with
   asymmetric undertriage penalties.
-author: openenv-hackathon-team
+author: Rahul R gadgimata
 tags:
   - healthcare
   - triage
@@ -15,7 +15,7 @@ tags:
   - openenv
 
 environment:
-  base_url: https://DakuDante-medical-triage-env.hf.space
+  base_url: https://rahulrgadgimata-solo-warrior-meta.hf.space
   endpoints:
     reset:    POST /reset
     step:     POST /step

@@ -101,4 +101,4 @@ Agents submit actions as JSON objects:
 ---
 
 ## 📜 License
-MIT License. Built for the OpenEnv 2026 Hackathon.
+MIT License. Developed by Rahul R gadgimata for the OpenEnv 2026 Hackathon.
