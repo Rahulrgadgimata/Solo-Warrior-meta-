@@ -412,8 +412,8 @@ def compute_overtriage_penalty(patient: dict, action: TriageAction) -> tuple[flo
 def score_triage_v3(
     patient: dict,
     action: TriageAction,
-    resource_manager: HospitalResourceManager,
-    progression_engine: PatientProgressionEngine,
+    resource_manager: Optional[HospitalResourceManager] = None,
+    progression_engine: Optional[PatientProgressionEngine] = None,
 ) -> tuple[float, TriageReward, list[str]]:
     """
     Full multi-objective scoring function for V3.
@@ -424,15 +424,23 @@ def score_triage_v3(
     accuracy_score = round(0.6 * esi_score + 0.4 * dept_score, 3)
 
     # 2. Resource allocation
-    resource_score, resource_feedback = resource_manager.score_resource_decision(action, patient)
+    if resource_manager:
+        resource_score, resource_feedback = resource_manager.score_resource_decision(action, patient)
+    else:
+        resource_score = 1.0  # default for static evaluation
+        resource_feedback = []
 
     # 3. Overtriage penalty
     overtriage_penalty, overtriage_feedback = compute_overtriage_penalty(patient, action)
 
     # 4. Delay and mortality penalties (from progression engine)
-    patient_id = patient["id"]
-    delay_penalty = progression_engine.compute_delay_penalty(patient_id)
-    mortality_penalty = progression_engine.compute_mortality_penalty(patient_id)
+    if progression_engine:
+        patient_id = patient["id"]
+        delay_penalty = progression_engine.compute_delay_penalty(patient_id)
+        mortality_penalty = progression_engine.compute_mortality_penalty(patient_id)
+    else:
+        delay_penalty = 0.0
+        mortality_penalty = 0.0
 
     # 5. Compose reward
     total = (
@@ -470,9 +478,10 @@ def score_triage_v3(
     )
 
     # Progression events
-    prog_state = progression_engine.get_state(patient_id)
-    if prog_state and prog_state.deterioration_events:
-        all_feedback.extend(prog_state.deterioration_events[-3:])
+    if progression_engine:
+        prog_state = progression_engine.get_state(patient["id"])
+        if prog_state and prog_state.deterioration_events:
+            all_feedback.extend(prog_state.deterioration_events[-3:])
 
     if action.reasoning:
         all_feedback.append(f'Your reasoning: "{action.reasoning[:150]}"')
