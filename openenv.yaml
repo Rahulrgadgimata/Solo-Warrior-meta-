@@ -1,0 +1,56 @@
+name: medical-triage-env
+version: "1.0.0"
+description: >
+  An OpenEnv environment where AI agents learn emergency medical triage using the
+  Emergency Severity Index (ESI). Agents assess patient presentations, assign ESI
+  levels (1–5), and recommend departments. Graders use clinical protocols with
+  asymmetric undertriage penalties.
+author: openenv-hackathon-team
+tags:
+  - healthcare
+  - triage
+  - medical
+  - real-world
+  - ESI
+  - openenv
+
+environment:
+  base_url: https://DakuDante-medical-triage-env.hf.space
+  endpoints:
+    reset:    POST /reset
+    step:     POST /step
+    state:    GET  /state
+    tasks:    GET  /tasks
+    grader:   POST /grader
+    baseline: GET  /baseline
+
+action:
+  type: object
+  properties:
+    esi_level:
+      type: integer
+      minimum: 1
+      maximum: 5
+    department:
+      type: string
+      enum: [Resuscitation, Emergency, Cardiology, Neurology, Trauma,
+             Pediatrics, Orthopedics, General, Psychiatry, Obstetrics,
+             Gastroenterology, Pulmonology]
+    reasoning:
+      type: string
+  required: [esi_level, department]
+
+tasks:
+  - id: easy
+    name: "Textbook Triage"
+    difficulty: easy
+  - id: medium
+    name: "Overlapping Presentations"
+    difficulty: medium
+  - id: hard
+    name: "Subtle & Ambiguous Cases"
+    difficulty: hard
+
+episode:
+  max_steps: 3
+  termination: score >= 0.9 OR max_steps reached
