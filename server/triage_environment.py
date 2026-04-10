@@ -317,6 +317,10 @@ class ProceduralPatientGenerator:
 # ─────────────────────────────────────────────────────────────────────────────
 # SCORING FUNCTIONS
 # ─────────────────────────────────────────────────────────────────────────────
+def clip_strict(val: float) -> float:
+    """Ensure score is strictly within (0, 1) to satisfy validator."""
+    return max(0.01, min(0.99, float(val)))
+
 
 def compute_esi_score(patient: dict, submitted_esi: int) -> tuple[float, float, list[str]]:
     correct_esi = patient["correct_esi"]
@@ -349,8 +353,8 @@ def compute_esi_score(patient: dict, submitted_esi: int) -> tuple[float, float, 
             f"ESI level incorrect: assigned ESI-{submitted_esi}, correct is ESI-{correct_esi}."
         )
 
-    final_score = max(0.01, base_score - undertriage_penalty)
-    return round(final_score, 3), round(undertriage_penalty, 3), feedback
+    final_score = clip_strict(base_score - undertriage_penalty)
+    return round(final_score, 3), round(undertriage_penalty, 3), esi_feedback
 
 
 def compute_department_score(patient: dict, submitted_dept: str) -> tuple[float, list[str]]:
@@ -377,7 +381,7 @@ def compute_department_score(patient: dict, submitted_dept: str) -> tuple[float,
         else:
             feedback.append(f"Incorrect department: {submitted_dept}. Optimal: {correct_dept}.")
 
-    return round(score, 3), feedback
+    return clip_strict(score), feedback
 
 
 def compute_overtriage_penalty(patient: dict, action: TriageAction) -> tuple[float, list[str]]:
@@ -427,7 +431,7 @@ def score_triage_v3(
     if resource_manager:
         resource_score, resource_feedback = resource_manager.score_resource_decision(action, patient)
     else:
-        resource_score = 1.0  # default for static evaluation
+        resource_score = 0.95  # default for static evaluation
         resource_feedback = []
 
     # 3. Overtriage penalty
@@ -451,7 +455,7 @@ def score_triage_v3(
         - overtriage_penalty
         - undertriage_penalty
     )
-    total = max(0.01, min(0.99, round(total, 3)))
+    total = clip_strict(total)
 
     reward = TriageReward(
         value=total,
